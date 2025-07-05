@@ -10,9 +10,9 @@ Day-by-Day Capstone Journey Plan
 
 This plan outlines the key activities and milestones for the "Role Swap" capstone project, leading up to a functional prototype.
 
-Phase 1: Planning & Design
+Phase 1: Planning \& Design
 
-Day 1: Project Proposal & Initial Plan Submission
+Day 1: Project Proposal \& Initial Plan Submission
 
 Finalize and submit the project title: "Role Swap."
 
@@ -42,9 +42,9 @@ Create interactive prototypes to simulate user experience and gather early feedb
 
 Refine scenario content and assessment criteria based on design considerations.
 
-Phase 2: Setup & Core Development
+Phase 2: Setup \& Core Development
 
-Day 4: Git Repository Setup & Basic Project Structure
+Day 4: Git Repository Setup \& Basic Project Structure
 
-Initialize a new Git repository for the project.
+Initialize a new Git Repository for the project.
 
