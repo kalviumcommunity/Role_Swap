@@ -10,8 +10,6 @@ Day-by-Day Capstone Journey Plan
 
 This plan outlines the key activities and milestones for the "Role Swap" capstone project, leading up to a functional prototype.
 
-Phase 1: Planning \& Design
-
 Day 1: Project Proposal \& Initial Plan Submission
 
 Finalize and submit the project title: "Role Swap."
@@ -42,9 +40,32 @@ Create interactive prototypes to simulate user experience and gather early feedb
 
 Refine scenario content and assessment criteria based on design considerations.
 
-Phase 2: Setup \& Core Development
 
 Day 4: Git Repository Setup \& Basic Project Structure
 
 Initialize a new Git Repository for the project.
+
+Day 5: Manage all daily tasks and project milestone progress via github projects
+
+Initialize all daily tasks of the project so it will be easy to check the timeline 
+
+Day 6: GET API used
+
+We create a Branch locally and then create GET end points for your project later commit Changes and Push the Branch to GitHub and create a new PR with that Branch after that Submit the PR Link.
+
+Day 7: POST API used
+
+We create a Branch locally and then create POST end points for your project commit Changes and Push the Branch to GitHub and create a new PR with that Branch later submit the PR Link.
+
+Day 8: PUT API used
+
+We create a Branch locally and then create PUT end points for your project commit Changes and Push the Branch to GitHub and create a new PR with that Branch later submit the PR Link.
+
+Day 9: Deployed backend server
+
+Login with Render.com using your kalvium community google account and deploy your Capstone Project on render.
+
+Day 10: Database schema created
+
+Create a Branch locally and create Database models along with schema and Commit Changes and Push the Branch to GitHub later Create a new PR with that Branch and Submit the PR Link.
 
