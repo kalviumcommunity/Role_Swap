@@ -16,7 +16,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     email: '',
     password: '',
   });
-  const { dispatch, createUser, loginUser } = useApp();
+  const { loginUser } = useApp();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
