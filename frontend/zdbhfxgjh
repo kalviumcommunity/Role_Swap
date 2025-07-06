@@ -1,0 +1,295 @@
+// PUT API Routes
+
+// 1. Update user profile
+app.put('/api/users/:userId/profile', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, email, preferences, careerGoals, experienceLevel } = req.body;
+
+    if (!name && !email && !preferences && !careerGoals && !experienceLevel) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one field must be provided for update"
+      });
+    }
+
+    let userProfile = userProfiles.get(userId) || {
+      userId,
+      name: "",
+      email: "",
+      preferences: {},
+      careerGoals: [],
+      experienceLevel: "Beginner",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (name) userProfile.name = name;
+    if (email) userProfile.email = email;
+    if (preferences) userProfile.preferences = { ...userProfile.preferences, ...preferences };
+    if (careerGoals) userProfile.careerGoals = careerGoals;
+    if (experienceLevel) userProfile.experienceLevel = experienceLevel;
+
+    userProfile.updatedAt = new Date().toISOString();
+    userProfiles.set(userId, userProfile);
+
+    res.status(200).json({
+      success: true,
+      message: "User profile updated successfully",
+      data: userProfile
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating user profile",
+      error: error.message
+    });
+  }
+});
+
+// 2. Update session progress
+app.put('/api/sessions/:sessionId/progress', (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { currentScenario, status, notes } = req.body;
+
+    const session = userSessions.get(sessionId);
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found"
+      });
+    }
+
+    if (currentScenario !== undefined) session.currentScenario = currentScenario;
+    if (status) session.status = status;
+    if (notes) session.notes = notes;
+
+    session.lastUpdated = new Date().toISOString();
+
+    res.status(200).json({
+      success: true,
+      message: "Session progress updated successfully",
+      data: {
+        sessionId,
+        currentScenario: session.currentScenario,
+        status: session.status,
+        notes: session.notes,
+        lastUpdated: session.lastUpdated
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating session progress",
+      error: error.message
+    });
+  }
+});
+
+// 3. Update role details (admin)
+app.put('/api/roles/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, difficulty, estimatedTime, skills, imageUrl } = req.body;
+
+    const roleIndex = roles.findIndex(r => r.id === parseInt(id));
+    if (roleIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Role not found"
+      });
+    }
+
+    const updatedRole = { ...roles[roleIndex] };
+
+    if (title) updatedRole.title = title;
+    if (description) updatedRole.description = description;
+    if (difficulty) updatedRole.difficulty = difficulty;
+    if (estimatedTime) updatedRole.estimatedTime = estimatedTime;
+    if (skills) updatedRole.skills = Array.isArray(skills) ? skills : [skills];
+    if (imageUrl) updatedRole.imageUrl = imageUrl;
+
+    updatedRole.updatedAt = new Date().toISOString();
+    roles[roleIndex] = updatedRole;
+
+    res.status(200).json({
+      success: true,
+      message: "Role updated successfully",
+      data: updatedRole
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating role",
+      error: error.message
+    });
+  }
+});
+
+// 4. Update scenario details (admin)
+app.put('/api/roles/:roleId/scenarios/:scenarioId', (req, res) => {
+  try {
+    const { roleId, scenarioId } = req.params;
+    const { title, description, options } = req.body;
+
+    const roleScenarios = scenarios[roleId];
+    if (!roleScenarios) {
+      return res.status(404).json({
+        success: false,
+        message: "Role scenarios not found"
+      });
+    }
+
+    const scenarioIndex = roleScenarios.findIndex(s => s.id === parseInt(scenarioId));
+    if (scenarioIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Scenario not found"
+      });
+    }
+
+    const updatedScenario = { ...roleScenarios[scenarioIndex] };
+
+    if (title) updatedScenario.title = title;
+    if (description) updatedScenario.description = description;
+    if (options && Array.isArray(options)) {
+      updatedScenario.options = options.map((option, index) => ({
+        id: String.fromCharCode(97 + index),
+        text: option.text,
+        outcome: option.outcome,
+        score: option.score || 0
+      }));
+    }
+
+    updatedScenario.updatedAt = new Date().toISOString();
+    roleScenarios[scenarioIndex] = updatedScenario;
+
+    res.status(200).json({
+      success: true,
+      message: "Scenario updated successfully",
+      data: updatedScenario
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating scenario",
+      error: error.message
+    });
+  }
+});
+
+// 5. Update assessment criteria (admin)
+app.put('/api/roles/:id/assessment', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { categories } = req.body;
+
+    const role = roles.find(r => r.id === parseInt(id));
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: "Role not found"
+      });
+    }
+
+    if (!categories || !Array.isArray(categories)) {
+      return res.status(400).json({
+        success: false,
+        message: "Categories array is required"
+      });
+    }
+
+    assessmentCriteria[role.title] = {
+      categories: categories.map(cat => ({
+        name: cat.name,
+        weight: cat.weight || 0.3,
+        criteria: Array.isArray(cat.criteria) ? cat.criteria : [cat.criteria]
+      })),
+      updatedAt: new Date().toISOString()
+    };
+
+    res.status(200).json({
+      success: true,
+      message: "Assessment criteria updated successfully",
+      data: assessmentCriteria[role.title]
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating assessment criteria",
+      error: error.message
+    });
+  }
+});
+
+// 6. Update user assessment
+app.put('/api/assessments/:sessionId', (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { feedback, performanceLevel, customNotes } = req.body;
+
+    const assessment = userAssessments.get(sessionId);
+    if (!assessment) {
+      return res.status(404).json({
+        success: false,
+        message: "Assessment not found"
+      });
+    }
+
+    if (feedback) assessment.feedback = feedback;
+    if (performanceLevel) assessment.performanceLevel = performanceLevel;
+    if (customNotes) assessment.customNotes = customNotes;
+
+    assessment.updatedAt = new Date().toISOString();
+    userAssessments.set(sessionId, assessment);
+
+    res.status(200).json({
+      success: true,
+      message: "Assessment updated successfully",
+      data: assessment
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating assessment",
+      error: error.message
+    });
+  }
+});
+
+// 7. Update user preferences
+app.put('/api/users/:userId/preferences', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { preferredRoles, difficultyLevel, timePreference, notificationSettings } = req.body;
+
+    let userProfile = userProfiles.get(userId);
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "User profile not found"
+      });
+    }
+
+    if (preferredRoles) userProfile.preferences.preferredRoles = preferredRoles;
+    if (difficultyLevel) userProfile.preferences.difficultyLevel = difficultyLevel;
+    if (timePreference) userProfile.preferences.timePreference = timePreference;
+    if (notificationSettings) userProfile.preferences.notificationSettings = notificationSettings;
+
+    userProfile.updatedAt = new Date().toISOString();
+    userProfiles.set(userId, userProfile);
+
+    res.status(200).json({
+      success: true,
+      message: "User preferences updated successfully",
+      data: userProfile.preferences
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating user preferences",
+      error: error.message
+    });
+  }
+});
