@@ -186,6 +186,11 @@ const assessmentCriteria = {
   }
 };
 
+// In-memory storage for user sessions and progress
+let userSessions = new Map();
+let userProgress = new Map();
+let userAssessments = new Map();
+
 // GET API Routes
 
 // 1. Get all available roles
@@ -324,6 +329,329 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+
+// POST API Routes
+
+// 1. Start a new user session
+app.post('/api/sessions', (req, res) => {
+  try {
+    const { userId, userName, selectedRoleId } = req.body;
+    
+    if (!userId || !userName || !selectedRoleId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: userId, userName, selectedRoleId"
+      });
+    }
+    
+    const role = roles.find(r => r.id === parseInt(selectedRoleId));
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: "Selected role not found"
+      });
+    }
+    
+    const sessionId = `session_${Date.now()}_${userId}`;
+    const session = {
+      sessionId,
+      userId,
+      userName,
+      selectedRole: role,
+      startTime: new Date().toISOString(),
+      status: 'active',
+      currentScenario: 0,
+      completedScenarios: [],
+      totalScore: 0
+    };
+    
+    userSessions.set(sessionId, session);
+    userProgress.set(userId, {
+      sessionId,
+      roleId: selectedRoleId,
+      progress: 0,
+      scenariosCompleted: 0
+    });
+    
+    res.status(201).json({
+      success: true,
+      message: "Session started successfully",
+      data: {
+        sessionId,
+        role: role.title,
+        estimatedTime: role.estimatedTime,
+        difficulty: role.difficulty
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error starting session",
+      error: error.message
+    });
+  }
+});
+
+// 2. Submit scenario response
+app.post('/api/sessions/:sessionId/responses', (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { scenarioId, selectedOptionId, responseTime } = req.body;
+    
+    if (!scenarioId || !selectedOptionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: scenarioId, selectedOptionId"
+      });
+    }
+    
+    const session = userSessions.get(sessionId);
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found"
+      });
+    }
+    
+    const roleScenarios = scenarios[session.selectedRole.id];
+    const scenario = roleScenarios.find(s => s.id === parseInt(scenarioId));
+    const selectedOption = scenario.options.find(o => o.id === selectedOptionId);
+    
+    if (!scenario || !selectedOption) {
+      return res.status(404).json({
+        success: false,
+        message: "Scenario or option not found"
+      });
+    }
+    
+    const response = {
+      scenarioId: parseInt(scenarioId),
+      selectedOptionId,
+      selectedOptionText: selectedOption.text,
+      outcome: selectedOption.outcome,
+      score: selectedOption.score,
+      responseTime: responseTime || Date.now(),
+      timestamp: new Date().toISOString()
+    };
+    
+    session.completedScenarios.push(response);
+    session.totalScore += selectedOption.score;
+    session.currentScenario++;
+    
+    // Update user progress
+    const userProg = userProgress.get(session.userId);
+    if (userProg) {
+      userProg.scenariosCompleted++;
+      userProg.progress = (userProg.scenariosCompleted / roleScenarios.length) * 100;
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: "Response submitted successfully",
+      data: {
+        outcome: selectedOption.outcome,
+        score: selectedOption.score,
+        totalScore: session.totalScore,
+        progress: userProg ? userProg.progress : 0
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error submitting response",
+      error: error.message
+    });
+  }
+});
+
+// 3. Complete session and generate assessment
+app.post('/api/sessions/:sessionId/complete', (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { feedback } = req.body;
+    
+    const session = userSessions.get(sessionId);
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found"
+      });
+    }
+    
+    const roleScenarios = scenarios[session.selectedRole.id];
+    const totalPossibleScore = roleScenarios.reduce((total, scenario) => {
+      const maxScore = Math.max(...scenario.options.map(opt => opt.score));
+      return total + maxScore;
+    }, 0);
+    
+    const performancePercentage = (session.totalScore / totalPossibleScore) * 100;
+    
+    let performanceLevel;
+    if (performancePercentage >= 80) performanceLevel = "Excellent";
+    else if (performancePercentage >= 60) performanceLevel = "Good";
+    else if (performancePercentage >= 40) performanceLevel = "Average";
+    else performanceLevel = "Needs Improvement";
+    
+    const assessment = {
+      sessionId,
+      userId: session.userId,
+      userName: session.userName,
+      role: session.selectedRole.title,
+      totalScore: session.totalScore,
+      maxPossibleScore: totalPossibleScore,
+      performancePercentage,
+      performanceLevel,
+      scenariosCompleted: session.completedScenarios.length,
+      totalScenarios: roleScenarios.length,
+      completionTime: new Date().toISOString(),
+      feedback: feedback || "",
+      detailedResponses: session.completedScenarios
+    };
+    
+    userAssessments.set(sessionId, assessment);
+    session.status = 'completed';
+    
+    res.status(200).json({
+      success: true,
+      message: "Session completed successfully",
+      data: assessment
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error completing session",
+      error: error.message
+    });
+  }
+});
+
+// 4. Create new role (admin endpoint)
+app.post('/api/roles', (req, res) => {
+  try {
+    const { title, description, difficulty, estimatedTime, skills, imageUrl } = req.body;
+    
+    if (!title || !description || !difficulty || !estimatedTime || !skills) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: title, description, difficulty, estimatedTime, skills"
+      });
+    }
+    
+    const newRole = {
+      id: roles.length + 1,
+      title,
+      description,
+      difficulty,
+      estimatedTime,
+      skills: Array.isArray(skills) ? skills : [skills],
+      imageUrl: imageUrl || `/images/${title.toLowerCase().replace(' ', '-')}.jpg`
+    };
+    
+    roles.push(newRole);
+    
+    res.status(201).json({
+      success: true,
+      message: "Role created successfully",
+      data: newRole
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error creating role",
+      error: error.message
+    });
+  }
+});
+
+// 5. Create new scenario for a role
+app.post('/api/roles/:roleId/scenarios', (req, res) => {
+  try {
+    const { roleId } = req.params;
+    const { title, description, options } = req.body;
+    
+    if (!title || !description || !options || !Array.isArray(options)) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: title, description, options (array)"
+      });
+    }
+    
+    const role = roles.find(r => r.id === parseInt(roleId));
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: "Role not found"
+      });
+    }
+    
+    if (!scenarios[roleId]) {
+      scenarios[roleId] = [];
+    }
+    
+    const newScenario = {
+      id: scenarios[roleId].length + 1,
+      title,
+      description,
+      options: options.map((option, index) => ({
+        id: String.fromCharCode(97 + index), // a, b, c, etc.
+        text: option.text,
+        outcome: option.outcome,
+        score: option.score || 0
+      }))
+    };
+    
+    scenarios[roleId].push(newScenario);
+    
+    res.status(201).json({
+      success: true,
+      message: "Scenario created successfully",
+      data: newScenario
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error creating scenario",
+      error: error.message
+    });
+  }
+});
+
+// 6. Submit user feedback
+app.post('/api/feedback', (req, res) => {
+  try {
+    const { userId, sessionId, rating, comment, category } = req.body;
+    
+    if (!userId || !rating) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: userId, rating"
+      });
+    }
+    
+    const feedback = {
+      id: `feedback_${Date.now()}`,
+      userId,
+      sessionId,
+      rating: parseInt(rating),
+      comment: comment || "",
+      category: category || "general",
+      timestamp: new Date().toISOString()
+    };
+    
+    res.status(201).json({
+      success: true,
+      message: "Feedback submitted successfully",
+      data: feedback
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error submitting feedback",
+      error: error.message
+    });
+  }
+});
+
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
@@ -335,7 +663,13 @@ app.get('/', (req, res) => {
       "GET /api/roles/:id/scenarios": "Get scenarios for a role",
       "GET /api/roles/:id/assessment": "Get assessment criteria for a role",
       "GET /api/scenarios": "Get all scenarios",
-      "GET /api/health": "Health check"
+      "GET /api/health": "Health check",
+      "POST /api/sessions": "Start a new user session",
+      "POST /api/sessions/:sessionId/responses": "Submit scenario response",
+      "POST /api/sessions/:sessionId/complete": "Complete session and get assessment",
+      "POST /api/roles": "Create new role (admin)",
+      "POST /api/roles/:roleId/scenarios": "Create new scenario for role",
+      "POST /api/feedback": "Submit user feedback"
     }
   });
 });

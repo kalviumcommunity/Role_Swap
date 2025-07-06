@@ -1,7 +1,8 @@
 # Role Swap API Documentation
 
 ## Overview
-The Role Swap API provides endpoints for retrieving professional role simulations, scenarios, and assessment criteria. This API supports the interactive career exploration application where users can experience different professional roles through realistic scenarios.
+The Role Swap API provides endpoints for retrieving professional role simulations, scenarios, and assessment criteria, as well as managing user sessions and interactions. This API supports the interactive career exploration application where users can experience different professional roles through realistic scenarios.
+
 
 ## Base URL
 ```
@@ -155,13 +156,241 @@ Checks if the API is running properly.
 }
 ```
 
+## POST Endpoints
+
+### 1. Start User Session
+Creates a new user session for role simulation.
+
+**Endpoint:** `POST /api/sessions`
+
+**Request Body:**
+```json
+{
+  "userId": "user123",
+  "userName": "John Doe",
+  "selectedRoleId": 1
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Session started successfully",
+  "data": {
+    "sessionId": "session_1705123456789_user123",
+    "role": "Software Engineer",
+    "estimatedTime": "30-45 minutes",
+    "difficulty": "Intermediate"
+  }
+}
+```
+
+### 2. Submit Scenario Response
+Submits user's response to a specific scenario.
+
+**Endpoint:** `POST /api/sessions/:sessionId/responses`
+
+**Parameters:**
+- `sessionId` (string): Session ID
+
+**Request Body:**
+```json
+{
+  "scenarioId": 1,
+  "selectedOptionId": "b",
+  "responseTime": 1705123456789
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Response submitted successfully",
+  "data": {
+    "outcome": "Good approach - Systematic problem-solving",
+    "score": 3,
+    "totalScore": 3,
+    "progress": 50
+  }
+}
+```
+
+### 3. Complete Session
+Completes the user session and generates assessment.
+
+**Endpoint:** `POST /api/sessions/:sessionId/complete`
+
+**Parameters:**
+- `sessionId` (string): Session ID
+
+**Request Body:**
+```json
+{
+  "feedback": "Great experience learning about software engineering!"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Session completed successfully",
+  "data": {
+    "sessionId": "session_1705123456789_user123",
+    "userId": "user123",
+    "userName": "John Doe",
+    "role": "Software Engineer",
+    "totalScore": 7,
+    "maxPossibleScore": 7,
+    "performancePercentage": 100,
+    "performanceLevel": "Excellent",
+    "scenariosCompleted": 2,
+    "totalScenarios": 2,
+    "completionTime": "2024-01-15T10:30:00.000Z",
+    "feedback": "Great experience learning about software engineering!",
+    "detailedResponses": [...]
+  }
+}
+```
+
+### 4. Create New Role (Admin)
+Creates a new professional role for simulation.
+
+**Endpoint:** `POST /api/roles`
+
+**Request Body:**
+```json
+{
+  "title": "Product Manager",
+  "description": "Define product strategy and roadmap",
+  "difficulty": "Advanced",
+  "estimatedTime": "50-65 minutes",
+  "skills": ["Product Strategy", "User Research", "Data Analysis"],
+  "imageUrl": "/images/product-manager.jpg"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Role created successfully",
+  "data": {
+    "id": 6,
+    "title": "Product Manager",
+    "description": "Define product strategy and roadmap",
+    "difficulty": "Advanced",
+    "estimatedTime": "50-65 minutes",
+    "skills": ["Product Strategy", "User Research", "Data Analysis"],
+    "imageUrl": "/images/product-manager.jpg"
+  }
+}
+```
+
+### 5. Create New Scenario
+Creates a new scenario for a specific role.
+
+**Endpoint:** `POST /api/roles/:roleId/scenarios`
+
+**Parameters:**
+- `roleId` (number): Role ID
+
+**Request Body:**
+```json
+{
+  "title": "Feature Prioritization",
+  "description": "You need to prioritize features for the next sprint with limited resources.",
+  "options": [
+    {
+      "text": "Choose features with highest user demand",
+      "outcome": "Good user-centric approach",
+      "score": 3
+    },
+    {
+      "text": "Choose features that are easiest to implement",
+      "outcome": "Short-term thinking",
+      "score": 1
+    },
+    {
+      "text": "Choose features with highest business impact",
+      "outcome": "Strategic thinking",
+      "score": 4
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Scenario created successfully",
+  "data": {
+    "id": 3,
+    "title": "Feature Prioritization",
+    "description": "You need to prioritize features for the next sprint with limited resources.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Choose features with highest user demand",
+        "outcome": "Good user-centric approach",
+        "score": 3
+      }
+    ]
+  }
+}
+```
+
+### 6. Submit Feedback
+Submits user feedback about the simulation experience.
+
+**Endpoint:** `POST /api/feedback`
+
+**Request Body:**
+```json
+{
+  "userId": "user123",
+  "sessionId": "session_1705123456789_user123",
+  "rating": 5,
+  "comment": "Very realistic scenarios!",
+  "category": "user_experience"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Feedback submitted successfully",
+  "data": {
+    "id": "feedback_1705123456789",
+    "userId": "user123",
+    "sessionId": "session_1705123456789_user123",
+    "rating": 5,
+    "comment": "Very realistic scenarios!",
+    "category": "user_experience",
+    "timestamp": "2024-01-15T10:30:00.000Z"
+  }
+}
+```
+
 ## Error Responses
+
+### 400 Bad Request
+```json
+{
+  "success": false,
+  "message": "Missing required fields: userId, userName, selectedRoleId"
+}
+```
 
 ### 404 Not Found
 ```json
 {
   "success": false,
-  "message": "Role not found"
+  "message": "Session not found"
 }
 ```
 
@@ -169,7 +398,7 @@ Checks if the API is running properly.
 ```json
 {
   "success": false,
-  "message": "Error retrieving roles",
+  "message": "Error starting session",
   "error": "Error details"
 }
 ```
@@ -201,6 +430,14 @@ Checks if the API is running properly.
    - Difficulty: Advanced
    - Time: 40-55 minutes
 
+## Session Management
+
+The API maintains user sessions in memory with the following features:
+- Session tracking with unique session IDs
+- Progress monitoring across scenarios
+- Score calculation and performance assessment
+- Detailed response logging for analysis
+
 ## Setup Instructions
 
 1. Install dependencies:
@@ -223,6 +460,21 @@ Checks if the API is running properly.
 You can test the endpoints using curl or any API client:
 
 ```bash
+# Start a session
+curl -X POST http://localhost:5000/api/sessions \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"user123","userName":"John Doe","selectedRoleId":1}'
+
+# Submit a response
+curl -X POST http://localhost:5000/api/sessions/session_123/responses \
+  -H "Content-Type: application/json" \
+  -d '{"scenarioId":1,"selectedOptionId":"b"}'
+
+# Complete session
+curl -X POST http://localhost:5000/api/sessions/session_123/complete \
+  -H "Content-Type: application/json" \
+  -d '{"feedback":"Great experience!"}'
+  
 # Get all roles
 curl http://localhost:5000/api/roles
 
