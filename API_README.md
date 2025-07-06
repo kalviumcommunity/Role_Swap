@@ -1,7 +1,7 @@
 # Role Swap API Documentation
 
 ## Overview
-The Role Swap API provides endpoints for retrieving professional role simulations, scenarios, and assessment criteria, as well as managing user sessions and interactions. This API supports the interactive career exploration application where users can experience different professional roles through realistic scenarios.
+The Role Swap API provides endpoints for retrieving professional role simulations, scenarios, and assessment criteria, as well as managing user sessions, interactions, and updates. This API supports the interactive career exploration application where users can experience different professional roles through realistic scenarios.
 
 
 ## Base URL
