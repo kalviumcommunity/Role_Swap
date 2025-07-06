@@ -3,6 +3,7 @@
 ## Overview
 The Role Swap API provides endpoints for retrieving professional role simulations, scenarios, and assessment criteria, as well as managing user sessions, interactions, and updates. This API supports the interactive career exploration application where users can experience different professional roles through realistic scenarios.
 
+
 ## Base URL
 ```
 http://localhost:5000
@@ -254,100 +255,20 @@ Completes the user session and generates assessment.
 }
 ```
 
-## PUT Endpoints
+### 4. Create New Role (Admin)
+Creates a new professional role for simulation.
 
-### 1. Update User Profile
-Updates user profile information.
-
-**Endpoint:** `PUT /api/users/:userId/profile`
-
-**Parameters:**
-- `userId` (string): User ID
+**Endpoint:** `POST /api/roles`
 
 **Request Body:**
 ```json
 {
-  "name": "John Doe",
-  "email": "john.doe@example.com",
-  "preferences": {
-    "preferredRoles": [1, 2],
-    "difficultyLevel": "Intermediate"
-  },
-  "careerGoals": ["Software Engineering", "Team Leadership"],
-  "experienceLevel": "Intermediate"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User profile updated successfully",
-  "data": {
-    "userId": "user123",
-    "name": "John Doe",
-    "email": "john.doe@example.com",
-    "preferences": {
-      "preferredRoles": [1, 2],
-      "difficultyLevel": "Intermediate"
-    },
-    "careerGoals": ["Software Engineering", "Team Leadership"],
-    "experienceLevel": "Intermediate",
-    "createdAt": "2024-01-15T10:30:00.000Z",
-    "updatedAt": "2024-01-15T10:35:00.000Z"
-  }
-}
-```
-
-### 2. Update Session Progress
-Updates session progress and status.
-
-**Endpoint:** `PUT /api/sessions/:sessionId/progress`
-
-**Parameters:**
-- `sessionId` (string): Session ID
-
-**Request Body:**
-```json
-{
-  "currentScenario": 2,
-  "status": "paused",
-  "notes": "User paused session for lunch break"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Session progress updated successfully",
-  "data": {
-    "sessionId": "session_1705123456789_user123",
-    "currentScenario": 2,
-    "status": "paused",
-    "notes": "User paused session for lunch break",
-    "lastUpdated": "2024-01-15T10:35:00.000Z"
-  }
-}
-```
-
-### 3. Update Role Details (Admin)
-Updates role information and details.
-
-**Endpoint:** `PUT /api/roles/:id`
-
-**Parameters:**
-- `id` (number): Role ID
-
-**Request Body:**
-```json
-{
-  "title": "Senior Software Engineer",
-  "description": "Lead development of complex software applications",
+  "title": "Product Manager",
+  "description": "Define product strategy and roadmap",
   "difficulty": "Advanced",
-  "estimatedTime": "45-60 minutes",
-  "skills": ["Advanced Programming", "System Design", "Team Leadership"],
-  "imageUrl": "/images/senior-software-engineer.jpg"
+  "estimatedTime": "50-65 minutes",
+  "skills": ["Product Strategy", "User Research", "Data Analysis"],
+  "imageUrl": "/images/product-manager.jpg"
 }
 ```
 
@@ -355,49 +276,47 @@ Updates role information and details.
 ```json
 {
   "success": true,
-  "message": "Role updated successfully",
+  "message": "Role created successfully",
   "data": {
-    "id": 1,
-    "title": "Senior Software Engineer",
-    "description": "Lead development of complex software applications",
+    "id": 6,
+    "title": "Product Manager",
+    "description": "Define product strategy and roadmap",
     "difficulty": "Advanced",
-    "estimatedTime": "45-60 minutes",
-    "skills": ["Advanced Programming", "System Design", "Team Leadership"],
-    "imageUrl": "/images/senior-software-engineer.jpg",
-    "updatedAt": "2024-01-15T10:35:00.000Z"
+    "estimatedTime": "50-65 minutes",
+    "skills": ["Product Strategy", "User Research", "Data Analysis"],
+    "imageUrl": "/images/product-manager.jpg"
   }
 }
 ```
 
-### 4. Update Scenario Details (Admin)
-Updates scenario information and options.
+### 5. Create New Scenario
+Creates a new scenario for a specific role.
 
-**Endpoint:** `PUT /api/roles/:roleId/scenarios/:scenarioId`
+**Endpoint:** `POST /api/roles/:roleId/scenarios`
 
 **Parameters:**
 - `roleId` (number): Role ID
-- `scenarioId` (number): Scenario ID
 
 **Request Body:**
 ```json
 {
-  "title": "Advanced Bug Fix Challenge",
-  "description": "You've been assigned to fix a critical bug in a microservices architecture.",
+  "title": "Feature Prioritization",
+  "description": "You need to prioritize features for the next sprint with limited resources.",
   "options": [
     {
-      "text": "Implement distributed tracing and debug systematically",
-      "outcome": "Excellent approach - Systematic debugging",
-      "score": 5
+      "text": "Choose features with highest user demand",
+      "outcome": "Good user-centric approach",
+      "score": 3
     },
     {
-      "text": "Check logs and make educated guesses",
-      "outcome": "Risky approach - May miss root cause",
-      "score": 2
+      "text": "Choose features that are easiest to implement",
+      "outcome": "Short-term thinking",
+      "score": 1
     },
     {
-      "text": "Ask the DevOps team to handle it",
-      "outcome": "Avoiding responsibility",
-      "score": -1
+      "text": "Choose features with highest business impact",
+      "outcome": "Strategic thinking",
+      "score": 4
     }
   ]
 }
@@ -407,52 +326,36 @@ Updates scenario information and options.
 ```json
 {
   "success": true,
-  "message": "Scenario updated successfully",
+  "message": "Scenario created successfully",
   "data": {
-    "id": 1,
-    "title": "Advanced Bug Fix Challenge",
-    "description": "You've been assigned to fix a critical bug in a microservices architecture.",
+    "id": 3,
+    "title": "Feature Prioritization",
+    "description": "You need to prioritize features for the next sprint with limited resources.",
     "options": [
       {
         "id": "a",
-        "text": "Implement distributed tracing and debug systematically",
-        "outcome": "Excellent approach - Systematic debugging",
-        "score": 5
+        "text": "Choose features with highest user demand",
+        "outcome": "Good user-centric approach",
+        "score": 3
       }
-    ],
-    "updatedAt": "2024-01-15T10:35:00.000Z"
+    ]
   }
 }
 ```
 
-### 5. Update Assessment Criteria (Admin)
-Updates assessment criteria for a specific role.
+### 6. Submit Feedback
+Submits user feedback about the simulation experience.
 
-**Endpoint:** `PUT /api/roles/:id/assessment`
-
-**Parameters:**
-- `id` (number): Role ID
+**Endpoint:** `POST /api/feedback`
 
 **Request Body:**
 ```json
 {
-  "categories": [
-    {
-      "name": "Technical Skills",
-      "weight": 0.5,
-      "criteria": ["Problem Solving", "Code Quality", "Testing", "Documentation", "System Design"]
-    },
-    {
-      "name": "Leadership Skills",
-      "weight": 0.3,
-      "criteria": ["Team Management", "Mentoring", "Decision Making"]
-    },
-    {
-      "name": "Communication",
-      "weight": 0.2,
-      "criteria": ["Technical Communication", "Stakeholder Management"]
-    }
-  ]
+  "userId": "user123",
+  "sessionId": "session_1705123456789_user123",
+  "rating": 5,
+  "comment": "Very realistic scenarios!",
+  "category": "user_experience"
 }
 ```
 
@@ -460,94 +363,15 @@ Updates assessment criteria for a specific role.
 ```json
 {
   "success": true,
-  "message": "Assessment criteria updated successfully",
+  "message": "Feedback submitted successfully",
   "data": {
-    "categories": [
-      {
-        "name": "Technical Skills",
-        "weight": 0.5,
-        "criteria": ["Problem Solving", "Code Quality", "Testing", "Documentation", "System Design"]
-      }
-    ],
-    "updatedAt": "2024-01-15T10:35:00.000Z"
-  }
-}
-```
-
-### 6. Update User Assessment
-Updates user assessment with additional feedback or notes.
-
-**Endpoint:** `PUT /api/assessments/:sessionId`
-
-**Parameters:**
-- `sessionId` (string): Session ID
-
-**Request Body:**
-```json
-{
-  "feedback": "User showed excellent problem-solving skills",
-  "performanceLevel": "Excellent",
-  "customNotes": "Recommended for advanced roles"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Assessment updated successfully",
-  "data": {
-    "sessionId": "session_1705123456789_user123",
+    "id": "feedback_1705123456789",
     "userId": "user123",
-    "userName": "John Doe",
-    "role": "Software Engineer",
-    "totalScore": 7,
-    "maxPossibleScore": 7,
-    "performancePercentage": 100,
-    "performanceLevel": "Excellent",
-    "feedback": "User showed excellent problem-solving skills",
-    "customNotes": "Recommended for advanced roles",
-    "updatedAt": "2024-01-15T10:35:00.000Z"
-  }
-}
-```
-
-### 7. Update User Preferences
-Updates user preferences and settings.
-
-**Endpoint:** `PUT /api/users/:userId/preferences`
-
-**Parameters:**
-- `userId` (string): User ID
-
-**Request Body:**
-```json
-{
-  "preferredRoles": [1, 3, 4],
-  "difficultyLevel": "Advanced",
-  "timePreference": "30-45 minutes",
-  "notificationSettings": {
-    "email": true,
-    "push": false,
-    "weeklyDigest": true
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User preferences updated successfully",
-  "data": {
-    "preferredRoles": [1, 3, 4],
-    "difficultyLevel": "Advanced",
-    "timePreference": "30-45 minutes",
-    "notificationSettings": {
-      "email": true,
-      "push": false,
-      "weeklyDigest": true
-    }
+    "sessionId": "session_1705123456789_user123",
+    "rating": 5,
+    "comment": "Very realistic scenarios!",
+    "category": "user_experience",
+    "timestamp": "2024-01-15T10:30:00.000Z"
   }
 }
 ```
@@ -574,7 +398,7 @@ Updates user preferences and settings.
 ```json
 {
   "success": false,
-  "message": "Error updating user profile",
+  "message": "Error starting session",
   "error": "Error details"
 }
 ```
@@ -613,7 +437,6 @@ The API maintains user sessions in memory with the following features:
 - Progress monitoring across scenarios
 - Score calculation and performance assessment
 - Detailed response logging for analysis
-- User profile and preference management
 
 ## Setup Instructions
 
@@ -637,18 +460,30 @@ The API maintains user sessions in memory with the following features:
 You can test the endpoints using curl or any API client:
 
 ```bash
-# Update user profile
-curl -X PUT http://localhost:5000/api/users/user123/profile \
+# Start a session
+curl -X POST http://localhost:5000/api/sessions \
   -H "Content-Type: application/json" \
-  -d '{"name":"John Doe","email":"john@example.com"}'
+  -d '{"userId":"user123","userName":"John Doe","selectedRoleId":1}'
 
-# Update session progress
-curl -X PUT http://localhost:5000/api/sessions/session_123/progress \
+# Submit a response
+curl -X POST http://localhost:5000/api/sessions/session_123/responses \
   -H "Content-Type: application/json" \
-  -d '{"currentScenario":2,"status":"paused"}'
+  -d '{"scenarioId":1,"selectedOptionId":"b"}'
 
-# Update role details
-curl -X PUT http://localhost:5000/api/roles/1 \
+# Complete session
+curl -X POST http://localhost:5000/api/sessions/session_123/complete \
   -H "Content-Type: application/json" \
-  -d '{"title":"Senior Software Engineer","difficulty":"Advanced"}'
+  -d '{"feedback":"Great experience!"}'
+  
+# Get all roles
+curl http://localhost:5000/api/roles
+
+# Get specific role
+curl http://localhost:5000/api/roles/1
+
+# Get scenarios for role
+curl http://localhost:5000/api/roles/1/scenarios
+
+# Health check
+curl http://localhost:5000/api/health
 ``` 
