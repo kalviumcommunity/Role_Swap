@@ -3,6 +3,7 @@
 ## Overview
 The Role Swap API provides endpoints for retrieving professional role simulations, scenarios, and assessment criteria, as well as managing user sessions and interactions. This API supports the interactive career exploration application where users can experience different professional roles through realistic scenarios.
 
+
 ## Base URL
 ```
 http://localhost:5000
@@ -473,4 +474,16 @@ curl -X POST http://localhost:5000/api/sessions/session_123/responses \
 curl -X POST http://localhost:5000/api/sessions/session_123/complete \
   -H "Content-Type: application/json" \
   -d '{"feedback":"Great experience!"}'
+  
+# Get all roles
+curl http://localhost:5000/api/roles
+
+# Get specific role
+curl http://localhost:5000/api/roles/1
+
+# Get scenarios for role
+curl http://localhost:5000/api/roles/1/scenarios
+
+# Health check
+curl http://localhost:5000/api/health
 ``` 
