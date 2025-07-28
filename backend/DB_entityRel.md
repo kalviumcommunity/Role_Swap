@@ -25,7 +25,7 @@ A `post` contains a `userId` that points to a user in the `users` collection, si
 
 ---
 
-## 📜 Script: `testRelationship.js`
+## 📜 Script: `entityRel.js`
 
 ```js
 const { MongoClient, ObjectId } = require("mongodb");
@@ -76,7 +76,7 @@ async function testRelationship() {
 testRelationship();
 ```
 
-🔍 What Each Step Does
+## 🔍 What Each Step Does
 Step	                              Description
 ✅ Connect to MongoDB Atlas	      - Uses MongoClient to connect to your cluster
 ✅ Insert a user	                  - Adds a test user to the users collection
@@ -84,7 +84,7 @@ Step	                              Description
 ✅ $lookup	                      - Performs a JOIN from posts to users using userId
 ✅ Print result	                  - Logs the post with full author data embedded
 
-🖨️ Output Example
+## 🖨️ Output Example
 
 ```
 {
@@ -100,14 +100,14 @@ Step	                              Description
 }
 ```
 
-🛠 Notes
+## 🛠 Notes
 This is a test-only script, so it uses hardcoded inserts.
 
-$lookup in MongoDB is the equivalent of SQL JOIN.
+'$lookup' in MongoDB is the equivalent of SQL JOIN.
 
 This works best for one-to-many relationships like user → posts.
 
-🧼 Cleanup (Optional)
+## 🧼 Cleanup (Optional)
 To remove test data:
 
 ```
@@ -115,7 +115,7 @@ await db.collection("posts").deleteMany({});
 await db.collection("users").deleteMany({});
 ```
 
-📌 When to Use Referencing
+## 📌 When to Use Referencing
 Use referencing instead of embedding when:
 - Documents grow large
 - Entities are reused (e.g., the same user across many posts)

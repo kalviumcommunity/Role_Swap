@@ -68,20 +68,21 @@ async function testMongoAtlasRW() {
 }
 
 testMongoAtlasRW();
+```
 
-🚀 Run the Script
+## 🚀 Run the Script
 ```
 node mongoTest.js
 ```
 
-✅ Expected Output
+## ✅ Expected Output
 ```
 Insert ID: 66abc123456789
 Read Result: { _id: ObjectId("..."), test: 'Atlas write test' }
 MongoDB Atlas R/W Test ✅ Passed
 ```
 
-🧹 Clean Up
+## 🧹 Clean Up
 If needed, delete the collection from Atlas UI or using:
 ```
 db.test_rw_collection.drop()
